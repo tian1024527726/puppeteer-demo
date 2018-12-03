@@ -44,8 +44,8 @@ const moment = require('moment');
     }
   }
   //定时提交
-  const count = 1;
   const buy_on_time = async (buytime) => {
+    let count = 1;
     while (true) {
       if (moment(new Date()).format('YYYY-MM-DD HH:mm:ss') == buytime) {
         while (true) {
@@ -63,6 +63,7 @@ const moment = require('moment');
               await page.waitFor(500)
               continue;
             }
+            await page.waitFor('#submitOrder_1 > div > a.go-btn',{timeout: 1000});
             await page.click('#submitOrder_1 > div > a.go-btn');
           } catch (e) {
             console.log('error')
@@ -76,7 +77,7 @@ const moment = require('moment');
     }
   }
 
-  login('&*****', '*******');
-  buy_on_time('2018-12-07 09:00:00');
+  login('*******', '*******');
+  buy_on_time('2018-12-03 15:50:00');
 })();
 
