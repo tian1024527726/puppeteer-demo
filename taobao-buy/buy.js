@@ -1,7 +1,6 @@
 const puppeteer = require('puppeteer');
 const moment = require('moment');
 
-
 (async () => {
   const browser = await puppeteer.launch({
     //mac上
@@ -25,15 +24,14 @@ const moment = require('moment');
     // //选择密码登录
     await page.click('#J-loginMethod-tabs > li:nth-child(2)');
     await page.evaluate((u, p) => {
-      // return something
       document.querySelector('#J-input-user').value = u;
       document.querySelector('#password_rsainput').value = p;
     }, userName, passWord);
     await page.waitFor('#J-login-btn');
     await page.click('#J-login-btn');
     try {
-      await page.waitFor(1000);
-      await page.click('#J_SelectAll2');
+      await page.waitFor('#J_SelectAll2', { timeout: 3000 });
+      await page.click('#J_SelectAll2',{delay:500});
     } catch (e) {
       await page.waitFor(1000);
       await page.evaluate((u, p) => {
@@ -41,6 +39,20 @@ const moment = require('moment');
         document.querySelector('#password_rsainput').value = p;
       }, userName, passWord);
       await page.click('#J-login-btn');
+      await page.waitFor('#J_SelectAll2', { timeout: 3000 });
+      await page.click('#J_SelectAll2',{delay:500});
+    }
+    const checkInput = await page.$('#J_SelectAllCbx2');
+    //检查是否全选
+    let checked = await page.evaluate(input => {
+      return input.checked;
+    }, checkInput);
+    while(!checked){
+      await page.click('#J_SelectAll2',{delay:500});
+      checked = await page.evaluate(input => {
+        return input.checked;
+      }, checkInput);
+      await page.waitFor(1000);
     }
   }
   //定时提交
@@ -50,25 +62,14 @@ const moment = require('moment');
       if (moment(new Date()).format('YYYY-MM-DD HH:mm:ss') == buytime) {
         while (true) {
           try {
-            await page.waitFor('#J_SelectAllCbx2');
-            const checkInput = await page.$('#J_SelectAllCbx2');
-            const checked = await page.evaluate(input => {
-              return input.checked;
-            }, checkInput);
-            if (checked) {
+            const summitInput = await page.$('#J_Go');
+            if (summitInput) {
               await page.click('#J_Go');
-            } else {
-              await page.waitFor('#J_SelectAll1');
-              await page.click('#J_SelectAll1');
-              await page.waitFor(500)
-              continue;
             }
-            await page.waitFor('#submitOrder_1 > div > a.go-btn',{timeout: 1000});
             await page.click('#submitOrder_1 > div > a.go-btn');
           } catch (e) {
-            console.log('error')
-            await page.goBack();
-            await page.waitFor(1000)
+            console.log('error---------->', e)
+            await page.waitFor(100)
           }
         }
       }
@@ -77,7 +78,9 @@ const moment = require('moment');
     }
   }
 
-  login('*******', '*******');
-  buy_on_time('2018-12-03 15:50:00');
+  await login('******', '******');
+  await buy_on_time('2018-12-03 17:00:00');
 })();
+
+
 
